@@ -1,19 +1,38 @@
-import {AccountStore} from "firefly-iii-typescript-sdk-fetch/dist/models";
-
-// TODO: You will need to update manifest.json so this file will be loaded on
-//  the correct URL.
+import {
+    AccountRoleProperty,
+    AccountStore,
+    CreditCardType,
+    ShortAccountTypeProperty
+} from "firefly-iii-typescript-sdk-fetch";
 
 function scrapeAccountsFromPage(): AccountStore[] {
     // TODO: This is where you implement the scraper to pull the individual
     //  accounts from the page
-    return [];
+
+    const [name] = document.querySelectorAll("div.banner-title > div.jsx-parser").values();
+
+    return [
+        {
+            name: name.textContent!,
+            type: ShortAccountTypeProperty.Asset,
+            accountRole: AccountRoleProperty.CcAsset,
+            accountNumber: name.textContent!.split('...')[1],
+            creditCardType: CreditCardType.MonthlyFull,
+            monthlyPaymentDate: new Date(2023, 1, 1),
+        }
+    ];
 }
 
 window.addEventListener("load",function(event) {
+    // TODO: Prompt for currency. Do all Rogers accounts use CAD?
+
     const button = document.createElement("button");
-    button.textContent = "Export Accounts"
+    button.textContent = "Export Account"
     button.addEventListener("click", () => {
         const accounts = scrapeAccountsFromPage();
+
+        console.log('sending accounts for storage', accounts);
+
         chrome.runtime.sendMessage(
             {
                 action: "store_accounts",
@@ -23,7 +42,17 @@ window.addEventListener("load",function(event) {
         );
     }, false);
 
-    // TODO: This is where you add a "scrape" button to the page where all the
-    //  bank accounts are listed.
-    document.body.append(button);
+    button.classList.add('btn-default', 'ui-dropdown-btn', 'dropdown-toggle', 'btn', 'btn-default');
+
+    const container = document.createElement("div");
+    container.classList.add('quick-link-options')
+    container.append(button)
+    container.style.border = 'none';
+    container.style.textAlign = 'end';
+
+
+    setTimeout(() => {
+        const [housing] = document.querySelectorAll("div.banner-title");
+        housing.append(container);
+    }, 2000); // TODO: A smarter way of handling render delay
 });

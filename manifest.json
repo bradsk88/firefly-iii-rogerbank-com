@@ -1,7 +1,7 @@
 {
-  "name": "My Firefly III OAuth2 Extension",
+  "name": "RogersBank -> Firefly III",
   "version": "1.0",
-  "description": "Description goes here",
+  "description": "Scrapes account and transaction data from Rogers Bank (MasterCard) into Firefly III",
   "permissions": [
     "identity",
     "clipboardWrite",
@@ -16,7 +16,7 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://*.example.com/*"],
+      "matches": ["https://rbaccess.rogersbank.com/app/accountSummary"],
       "js": ["./dist/accounts.js"]
     },
     {
@@ -28,6 +28,9 @@
       "js": ["./dist/opening.js"]
     }
   ],
+  "icons": {
+    "128": "icon.png"
+  },
   "devtools_page": "devtools.html",
   "manifest_version": 3
 }
