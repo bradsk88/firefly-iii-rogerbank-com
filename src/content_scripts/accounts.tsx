@@ -50,7 +50,6 @@ window.addEventListener("load",function(event) {
     container.style.border = 'none';
     container.style.textAlign = 'end';
 
-
     setTimeout(() => {
         const [housing] = document.querySelectorAll("div.banner-title");
         housing.append(container);
