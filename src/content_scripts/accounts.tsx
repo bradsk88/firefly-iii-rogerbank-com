@@ -4,19 +4,24 @@ import {
     CreditCardType,
     ShortAccountTypeProperty
 } from "firefly-iii-typescript-sdk-fetch";
+import {priceFromString} from "../common/prices";
+import {parseDate} from "../common/dates";
 
 function scrapeAccountsFromPage(): AccountStore[] {
-    // TODO: This is where you implement the scraper to pull the individual
-    //  accounts from the page
-
-    const [name] = document.querySelectorAll("div.banner-title > div.jsx-parser").values();
-
+    const name = document.querySelector("div.banner-title > div.jsx-parser");
+    const cards = Array.from(document.querySelectorAll('div.account-summary-tiles-custom-inner div.twocard-container').values());
+    const statementBalanceCard = cards.filter(v => v.textContent!.includes("Statement Balance"))[0];
+    const statementBalance = statementBalanceCard.querySelector("span.card-balance")!.textContent;
+    const statementDateText = statementBalanceCard.querySelector('div.custom-card-text')!.textContent;
+    const statementDate = parseDate(statementDateText!!.split('As of')[1].trim());
     return [
         {
-            name: name.textContent!,
+            name: name!.textContent!,
             type: ShortAccountTypeProperty.Asset,
             accountRole: AccountRoleProperty.CcAsset,
-            accountNumber: name.textContent!.split('...')[1],
+            accountNumber: name!.textContent!.split('...')[1],
+            openingBalance: `-${priceFromString(statementBalance!)}`,
+            openingBalanceDate: statementDate,
             creditCardType: CreditCardType.MonthlyFull,
             monthlyPaymentDate: new Date(2023, 1, 1),
         }

@@ -22,10 +22,6 @@
     {
       "matches": ["https://rbaccess.rogersbank.com/app/transactions"],
       "js": ["./dist/transactions.js"]
-    },
-    {
-      "matches": ["https://*.example.com/*"],
-      "js": ["./dist/opening.js"]
     }
   ],
   "icons": {
