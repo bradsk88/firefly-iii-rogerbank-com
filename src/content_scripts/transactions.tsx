@@ -1,6 +1,7 @@
 import {TransactionStore, TransactionTypeProperty} from "firefly-iii-typescript-sdk-fetch";
 import {parseDate} from "../common/dates";
 import {AccountRead} from "firefly-iii-typescript-sdk-fetch/dist/models/AccountRead";
+import {addButtonOnURLMatch} from "../common/buttons";
 
 async function getCurrentPageAccountId(
     allAccounts: AccountRead[],
@@ -50,7 +51,12 @@ async function scrapeTransactionsFromPage(
     });
 }
 
-window.addEventListener("load", function (event) {
+const buttonId = 'firefly-iii-transactions-export-button'
+
+addButtonOnURLMatch(
+    '',
+    () => !!document.getElementById(buttonId),
+    () => {
     const button = document.createElement("button");
     button.textContent = "Export Transactions"
     button.addEventListener("click", async() => {

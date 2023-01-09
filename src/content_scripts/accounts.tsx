@@ -6,6 +6,7 @@ import {
 } from "firefly-iii-typescript-sdk-fetch";
 import {priceFromString} from "../common/prices";
 import {parseDate} from "../common/dates";
+import {addButtonOnURLMatch} from "../common/buttons";
 
 function scrapeAccountsFromPage(): AccountStore[] {
     const name = document.querySelector("div.banner-title > div.jsx-parser");
@@ -28,10 +29,17 @@ function scrapeAccountsFromPage(): AccountStore[] {
     ];
 }
 
-window.addEventListener("load",function(event) {
+
+const buttonId = 'firefly-iii-accounts-export-button'
+
+addButtonOnURLMatch(
+    '',
+    () => !!document.getElementById(buttonId),
+    () => {
     // TODO: Prompt for currency. Do all Rogers accounts use CAD?
 
     const button = document.createElement("button");
+    button.id = buttonId;
     button.textContent = "Export Account"
     button.addEventListener("click", () => {
         const accounts = scrapeAccountsFromPage();
