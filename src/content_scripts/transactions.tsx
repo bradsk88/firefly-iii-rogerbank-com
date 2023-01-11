@@ -1,95 +1,69 @@
-import {TransactionStore, TransactionTypeProperty} from "firefly-iii-typescript-sdk-fetch";
-import {parseDate} from "../common/dates";
-import {AccountRead} from "firefly-iii-typescript-sdk-fetch/dist/models/AccountRead";
-import {addButtonOnURLMatch} from "../common/buttons";
+import {TransactionStore} from "firefly-iii-typescript-sdk-fetch";
+import {runOnURLMatch} from "../common/buttons";
+import {AutoRunState} from "../background/auto_state";
+import {getCurrentPageAccount, scrapeTransactionsFromPage} from "./scrape/transactions";
+import {PageAccount} from "../common/accounts";
 
-async function getCurrentPageAccountId(
-    allAccounts: AccountRead[],
-): Promise<string> {
-    const backButton = document.getElementById('BackButton');
-    const accountNum = backButton!.querySelector('span.card-last')!.textContent!.split('...')[1];
-    const account = allAccounts.find(acct => acct.attributes.accountNumber === accountNum);
-    console.log('account', account);
-    return account!.id!;
+// TODO: You will need to update manifest.json so this file will be loaded on
+//  the correct URL.
+
+interface TransactionScrape {
+    pageAccount: PageAccount;
+    pageTransactions: TransactionStore[];
 }
 
-async function scrapeTransactionsFromPage(
-    accountNo: string,
-): Promise<TransactionStore[]> {
-    const container = document.querySelectorAll('div.list-container div.list-item').values();
-    return Array.from(container).map(item => {
-        const itemName = item.querySelector("div.item-name");
-        const itemDesc = item.querySelector('span.item-bottom-left > div');
-        const itemAmt = item.querySelector('div.text-right > div.item-amount');
-        const itemDate = item.parentElement!.parentElement!.parentElement!.querySelector('div.list-floating-header');
-        const amountStr = itemAmt!.textContent!.trim();
-        const isDeposit = amountStr.startsWith('-');
-        const tType = isDeposit ? TransactionTypeProperty.Deposit : TransactionTypeProperty.Withdrawal;
-        const tDate = parseDate(itemDate!.textContent!);
-        const tAmt = (isDeposit ? amountStr.replace("-", "") : amountStr).replace('$', '').replace(',', '');
-        const tDesc = `${itemName!.textContent} - ${itemDesc!.textContent!}`;
+async function doScrape(): Promise<TransactionScrape> {
+    const accounts = await chrome.runtime.sendMessage({
+        action: "list_accounts",
+    });
+    const id = await getCurrentPageAccount(accounts);
+    const txs = scrapeTransactionsFromPage(id.id);
+    chrome.runtime.sendMessage({
+            action: "store_transactions",
+            value: txs,
+        },
+        () => {
+        });
+    return {
+        pageAccount: id,
+        pageTransactions: txs,
+    };
+}
 
-        const sourceId = tType === TransactionTypeProperty.Withdrawal ? accountNo : undefined;
-        const destId = tType === TransactionTypeProperty.Deposit ? accountNo : undefined;
+const buttonId = 'firefly-iii-export-transactions-button';
 
-        return {
-            errorIfDuplicateHash: true,
-            transactions: [{
-                type: tType,
-                date: tDate,
-                amount: tAmt,
-                description: tDesc,
-                sourceId: sourceId,
-                destinationId: destId,
-            }],
-        };
-    }).map(tr => {
-        tr.transactions = tr.transactions.filter(
-            t => !t.description.includes("Pending")
-        );
-        return tr;
+function addButton() {
+    // TODO: This is where you add a "scrape" button to the page where the
+    //  account's transactions are listed.
+    const button = document.createElement("button");
+    button.textContent = "Export Transactions"
+    button.addEventListener("click", async () => doScrape(), false);
+    // TODO: Try to steal styling from the page to make this look good :)
+    button.classList.add("some", "classes", "from", "the", "page");
+    document.body.append(button);
+}
+
+function enableAutoRun() {
+    chrome.runtime.sendMessage({
+        action: "get_auto_run_state",
+    }).then(state => {
+        if (state === AutoRunState.Transactions) {
+            doScrape()
+                .then((id: TransactionScrape) => chrome.runtime.sendMessage({
+                    action: "complete_auto_run_state",
+                    state: AutoRunState.Transactions,
+                }));
+        }
     });
 }
 
-const buttonId = 'firefly-iii-transactions-export-button'
-
-addButtonOnURLMatch(
-    '',
+// If your manifest.json allows your content script to run on multiple pages,
+// you can call this function more than once, or set the urlPath to "".
+runOnURLMatch(
+    'accounts/main/details', // TODO: Set this to your transactions page URL
     () => !!document.getElementById(buttonId),
     () => {
-    const button = document.createElement("button");
-    button.textContent = "Export Transactions"
-    button.addEventListener("click", async() => {
-        console.log('clicked');
-        const accounts = await chrome.runtime.sendMessage({
-            action: "list_accounts",
-        });
-        console.log('accounts', accounts);
-        const id = await getCurrentPageAccountId(accounts);
-        console.log('id', id);
-        const transactions = await scrapeTransactionsFromPage(id);
-        console.log('tx', transactions);
-        chrome.runtime.sendMessage(
-            {
-                action: "store_transactions",
-                value: transactions,
-            },
-            () => {
-            }
-        );
-    }, false);
-
-    button.classList.add('ui-action-button', 'btn-primary', 'btn', 'btn-default', 'btn-block');
-
-    const outerContainer = document.createElement("div");
-    outerContainer.classList.add('col-xs-12', 'col-sm-2', 'filter-cols')
-    const innerContainer = document.createElement("div");
-    innerContainer.classList.add('form-group', 'filter-icon-padding')
-    outerContainer.append(innerContainer);
-    innerContainer.append(button);
-
-    setTimeout(() => {
-        const [housing] = document.querySelectorAll("div.row.filter-cols");
-        housing.append(outerContainer);
-    }, 2000); // TODO: A smarter way of handling render delay
-});
+        addButton();
+        enableAutoRun();
+    },
+)
