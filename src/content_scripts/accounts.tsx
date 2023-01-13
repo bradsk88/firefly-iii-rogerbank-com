@@ -21,15 +21,20 @@ async function scrapeAccountsFromPage(): Promise<AccountStore[]> {
         const accountNumber = getAccountNumber(element)
         const accountName = getAccountName(element);
         const openingBalance = getOpeningBalance(element);
+        let openingBalanceBalance: string | undefined;
+        if (openingBalance) {
+            openingBalanceBalance = `-${openingBalance.balance}`;
+        }
         const as: AccountStore = {
             name: accountName,
             type: ShortAccountTypeProperty.Asset,
             accountRole: AccountRoleProperty.CcAsset,
             accountNumber: accountNumber,
-            openingBalance: `-${openingBalance.balance}`,
-            openingBalanceDate: openingBalance.date,
+            openingBalance: openingBalanceBalance,
+            openingBalanceDate: openingBalance?.date,
             creditCardType: CreditCardType.MonthlyFull,
             monthlyPaymentDate: new Date(2023, 1, 1),
+            currencyCode: "CAD",
         };
         return as;
     });

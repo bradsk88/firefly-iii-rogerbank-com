@@ -8,9 +8,9 @@ export async function progressAutoRun(state = AutoRunState.Accounts) {
     await setAutoRunState(state)
     if (state === AutoRunState.Done) {
         if (!!openedWindow) {
+            const id = openedWindow.id;
             openedWindow = undefined;
-            // TODO: Uncomment
-            // return chrome.tabs.remove(openedWindow!.id!);
+            return chrome.tabs.remove(id!);
         }
         return;
     }

@@ -21,7 +21,6 @@ const backgroundLog = (string: string): void => {
     });
 }
 
-// TODO: Add to base project
 chrome.runtime.onConnectExternal.addListener(function (port) {
     port.onMessage.addListener(function (msg) {
         console.log('message', msg);
