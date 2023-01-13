@@ -1,11 +1,21 @@
 import {AutoRunState} from "./auto_state";
 import Tab = chrome.tabs.Tab;
+import {autoRunStartURL} from "../extensionid";
+
+let openedWindow: Tab;
 
 export async function progressAutoRun(state = AutoRunState.Accounts) {
     await setAutoRunState(state)
+    if (openedWindow) {
+        chrome.tabs.remove(openedWindow.id!)
+    }
     if (state === AutoRunState.Done) {
         return;
     }
+    openedWindow = await chrome.tabs.create({
+        url: autoRunStartURL,
+        active: false,
+    })
 }
 
 async function setAutoRunState(s: AutoRunState): Promise<void> {
@@ -26,14 +36,8 @@ export function getAutoRunState(): Promise<AutoRunState> {
     });
 }
 
-export function progressAutoTx(lastAccountName: string) {
-    setAutoRunLastTx(lastAccountName)
-        .then(() => openedWindow ? chrome.tabs.remove(openedWindow.id!) : undefined)
-        .then(() => chrome.tabs.create({
-            url: 'https://personal.affinitycu.ca/Accounts/Summary',
-            active: false,
-        }))
-        .then(tab => openedWindow = tab);
+export async function progressAutoTx(lastAccountName: string) {
+    return setAutoRunLastTx(lastAccountName);
 }
 
 async function setAutoRunLastTx(accountName: string): Promise<void> {
@@ -43,7 +47,7 @@ async function setAutoRunLastTx(accountName: string): Promise<void> {
     return chrome.storage.local.set({
         "ffiii_auto_run_last_transaction_account_name": accountName,
     })
-    // TODO: Indicate transaction progress in addition to autorun stages?
+    // TODO: [Base Project] Indicate transaction progress in addition to autorun stages?
     // chrome.runtime.sendMessage({
     //     action: "update_auto_run_progress",
     // })
