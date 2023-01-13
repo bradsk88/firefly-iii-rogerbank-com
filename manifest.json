@@ -16,12 +16,8 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://rbaccess.rogersbank.com/app/accountSummary"],
-      "js": ["./dist/accounts.js", "./dist/auto.js"]
-    },
-    {
-      "matches": ["https://rbaccess.rogersbank.com/app/transactions"],
-      "js": ["./dist/transactions.js", "./dist/auto.js"]
+      "matches": ["https://rbaccess.rogersbank.com/*"],
+      "js": ["./dist/accounts.js", "./dist/auto.js", "./dist/transactions.js"]
     }
   ],
   "icons": {

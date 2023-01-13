@@ -84,17 +84,27 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             backgroundLog(`[error] ${error}`)
         })
     } else if (message.action === "store_accounts") {
-        patchDatesAccount(message.value).then(
-            accs => storeAccounts(accs),
-        ).catch((error) => {
-            backgroundLog(`[error] ${error}`)
+        getAutoRunState().then(state => {
+            if (state === AutoRunState.Done) {
+                return;
+            }
+            patchDatesAccount(message.value).then(
+                accs => storeAccounts(accs),
+            ).catch((error) => {
+                backgroundLog(`[error] ${error}`)
+            });
         });
     } else if (message.action === "store_transactions") {
-        patchDatesAndAvoidDupes(message.value).then(
-            txStore => storeTransactions(txStore),
-        ).catch((error) => {
-            backgroundLog(`[error] ${error}`)
-        });
+        getAutoRunState().then(state => {
+            if (state === AutoRunState.Done) {
+                return;
+            }
+            patchDatesAndAvoidDupes(message.value).then(
+                txStore => storeTransactions(txStore),
+            ).catch((error) => {
+                backgroundLog(`[error] ${error}`)
+            });
+        })
     } else if (message.action === "store_opening") {
         patchDatesOB(message.value).then(
             obStore => storeOpeningBalance(obStore),

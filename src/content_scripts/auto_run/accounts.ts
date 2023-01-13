@@ -1,5 +1,3 @@
-import {sha512} from "js-sha512";
-import {AutoRunState} from "../../background/auto_state";
 import {getAccountElements, getAccountName} from "../scrape/accounts";
 
 function findNextAccountElement(accountName: string): Element | undefined {
@@ -23,8 +21,6 @@ function findNextAccountElement(accountName: string): Element | undefined {
 function navigateToAccount(
     accountElement: Element,
 ): void {
-    // TODO: In order to scrape transactions, we need to navigate to
-    //  each account. This template assumes you can "click" on it.
     (accountElement as HTMLElement)?.click()
 }
 
@@ -37,9 +33,5 @@ export function openAccountForAutoRun() {
                 navigateToAccount(accountElement);
                 return;
             }
-            chrome.runtime.sendMessage({
-                action: "complete_auto_run_state",
-                state: AutoRunState.Transactions,
-            });
         });
 }

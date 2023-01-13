@@ -3,22 +3,29 @@ import {AutoRunState} from "../background/auto_state";
 import {getCurrentPageAccount, scrapeTransactionsFromPage} from "./scrape/transactions";
 import {PageAccount} from "../common/accounts";
 import {runOnURLMatch} from "../common/buttons";
-
-// TODO: You will need to update manifest.json so this file will be loaded on
-//  the correct URL.
+import {runOnContentChange} from "../common/autorun";
 
 interface TransactionScrape {
     pageAccount: PageAccount;
     pageTransactions: TransactionStore[];
 }
 
+let pageAlreadyScraped = false;
+
 async function doScrape(): Promise<TransactionScrape> {
+    if (pageAlreadyScraped) {
+        throw new Error("Already scraped. Stopping.");
+    }
     const accounts = await chrome.runtime.sendMessage({
         action: "list_accounts",
     });
     const id = await getCurrentPageAccount(accounts);
     const txs = scrapeTransactionsFromPage(id.id);
-    chrome.runtime.sendMessage({
+    pageAlreadyScraped = true;
+    if (txs.length === 0) {
+        throw new Error("Page is not ready for scraping");
+    }
+    await chrome.runtime.sendMessage({
             action: "store_transactions",
             value: txs,
         },
@@ -61,7 +68,10 @@ function enableAutoRun() {
                 .then((id: TransactionScrape) => chrome.runtime.sendMessage({
                     action: "complete_auto_run_state",
                     state: AutoRunState.Transactions,
-                }));
+                }))
+                .catch(err => {
+                    console.log('Will try again on next draw', err)
+                });
         }
     });
 }
@@ -72,7 +82,12 @@ runOnURLMatch(
     'app/transactions',
     () => !!document.getElementById(buttonId),
     () => {
+        pageAlreadyScraped = false;
         addButton();
-        enableAutoRun();
     },
+)
+
+runOnContentChange(
+    'app/transactions',
+    enableAutoRun,
 )

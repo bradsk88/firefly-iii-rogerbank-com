@@ -6,10 +6,17 @@ import {
 import {AutoRunState} from "../background/auto_state";
 import {getAccountElements, getAccountName, getAccountNumber, getOpeningBalance} from "./scrape/accounts";
 import {openAccountForAutoRun} from "./auto_run/accounts";
-import {runOnContentChange, runOnURLMatch} from "../common/buttons";
 import {CreditCardType} from "firefly-iii-typescript-sdk-fetch";
+import {runOnURLMatch} from "../common/buttons";
+import {runOnContentChange} from "../common/autorun";
+
+let pageAlreadyScraped = false;
 
 async function scrapeAccountsFromPage(): Promise<AccountStore[]> {
+    if (pageAlreadyScraped) {
+        throw new Error("Already scraped. Stopping.");
+    }
+
     const accounts = getAccountElements().map(element => {
         const accountNumber = getAccountNumber(element)
         const accountName = getAccountName(element);
@@ -26,6 +33,7 @@ async function scrapeAccountsFromPage(): Promise<AccountStore[]> {
         };
         return as;
     });
+    pageAlreadyScraped = true;
     chrome.runtime.sendMessage(
         {
             action: "store_accounts",
@@ -68,7 +76,10 @@ function enableAutoRun() {
 runOnURLMatch(
     '',
     () => !!document.getElementById(buttonId),
-    addButton,
+    () => {
+        pageAlreadyScraped = false;
+        addButton();
+    },
 );
 
 runOnContentChange(
