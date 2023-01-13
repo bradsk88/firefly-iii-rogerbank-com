@@ -21,6 +21,19 @@ const backgroundLog = (string: string): void => {
     });
 }
 
+// TODO: Add to base project
+chrome.runtime.onConnectExternal.addListener(function (port) {
+    port.onMessage.addListener(function (msg) {
+        console.log('message', msg);
+        if (msg.action === "login") {
+            return chrome.storage.local.set({
+                "ffiii_bearer_token": msg.token,
+            }, () => {
+            });
+        }
+    });
+});
+
 function registerSelfWithHubExtension() {
     console.log('registering self');
     const port = chrome.runtime.connect(hubExtensionId);

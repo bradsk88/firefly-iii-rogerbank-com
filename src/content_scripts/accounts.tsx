@@ -6,7 +6,7 @@ import {
 import {AutoRunState} from "../background/auto_state";
 import {getAccountElements, getAccountName, getAccountNumber, getOpeningBalance} from "./scrape/accounts";
 import {openAccountForAutoRun} from "./auto_run/accounts";
-import {runOnURLMatch} from "../common/buttons";
+import {runOnContentChange, runOnURLMatch} from "../common/buttons";
 import {CreditCardType} from "firefly-iii-typescript-sdk-fetch";
 
 async function scrapeAccountsFromPage(): Promise<AccountStore[]> {
@@ -68,7 +68,10 @@ function enableAutoRun() {
 runOnURLMatch(
     '',
     () => !!document.getElementById(buttonId),
-    () => {
-        addButton();
-        enableAutoRun();
-    });
+    addButton,
+);
+
+runOnContentChange(
+    'app/accountSummary',
+    enableAutoRun,
+)

@@ -3,7 +3,7 @@ import {OpeningBalance} from "../../background/firefly_export";
 import {parseDate} from "../../common/dates";
 
 export function getAccountElements(): Element[] {
-    return [document.querySelector("div.banner-title > div.jsx-parser")!];
+    return [document.querySelector("button#transactionHistory")!];
 }
 
 export function getAccountNumber(

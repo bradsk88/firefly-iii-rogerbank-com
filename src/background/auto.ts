@@ -1,20 +1,11 @@
 import {AutoRunState} from "./auto_state";
 import Tab = chrome.tabs.Tab;
 
-let openedWindow: Tab;
-
 export async function progressAutoRun(state = AutoRunState.Accounts) {
     await setAutoRunState(state)
-    if (openedWindow) {
-        chrome.tabs.remove(openedWindow.id!)
-    }
     if (state === AutoRunState.Done) {
         return;
     }
-    openedWindow = await chrome.tabs.create({
-        url: 'https://personal.affinitycu.ca/Accounts/Summary',
-        active: false,
-    })
 }
 
 async function setAutoRunState(s: AutoRunState): Promise<void> {

@@ -1,2 +1,2 @@
-export const extensionId = ''; // TODO: Put your extension ID here
+export const extensionId = 'ogficdaeajjimepmoaklpekcchjiejmf';
 export const hubExtensionId = 'jdbhbahnhimknicppcaelifbjhlpihab';

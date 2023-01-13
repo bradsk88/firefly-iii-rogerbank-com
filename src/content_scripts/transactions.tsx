@@ -1,8 +1,8 @@
 import {TransactionStore} from "firefly-iii-typescript-sdk-fetch";
-import {runOnURLMatch} from "../common/buttons";
 import {AutoRunState} from "../background/auto_state";
 import {getCurrentPageAccount, scrapeTransactionsFromPage} from "./scrape/transactions";
 import {PageAccount} from "../common/accounts";
+import {runOnURLMatch} from "../common/buttons";
 
 // TODO: You will need to update manifest.json so this file will be loaded on
 //  the correct URL.
@@ -33,14 +33,23 @@ async function doScrape(): Promise<TransactionScrape> {
 const buttonId = 'firefly-iii-export-transactions-button';
 
 function addButton() {
-    // TODO: This is where you add a "scrape" button to the page where the
-    //  account's transactions are listed.
     const button = document.createElement("button");
     button.textContent = "Export Transactions"
     button.addEventListener("click", async () => doScrape(), false);
-    // TODO: Try to steal styling from the page to make this look good :)
-    button.classList.add("some", "classes", "from", "the", "page");
-    document.body.append(button);
+
+    button.classList.add('ui-action-button', 'btn-primary', 'btn', 'btn-default', 'btn-block');
+
+    const outerContainer = document.createElement("div");
+    outerContainer.classList.add('col-xs-12', 'col-sm-2', 'filter-cols')
+    const innerContainer = document.createElement("div");
+    innerContainer.classList.add('form-group', 'filter-icon-padding')
+    outerContainer.append(innerContainer);
+    innerContainer.append(button);
+
+    setTimeout(() => {
+        const [housing] = document.querySelectorAll("div.row.filter-cols");
+        housing.append(outerContainer);
+    }, 2000); // TODO: A smarter way of handling render delay
 }
 
 function enableAutoRun() {
@@ -60,7 +69,7 @@ function enableAutoRun() {
 // If your manifest.json allows your content script to run on multiple pages,
 // you can call this function more than once, or set the urlPath to "".
 runOnURLMatch(
-    'accounts/main/details', // TODO: Set this to your transactions page URL
+    'app/transactions',
     () => !!document.getElementById(buttonId),
     () => {
         addButton();
