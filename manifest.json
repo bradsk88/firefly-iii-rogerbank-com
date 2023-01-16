@@ -3,13 +3,11 @@
   "version": "1.0",
   "description": "Scrapes account and transaction data from Rogers Bank (MasterCard) into Firefly III",
   "permissions": [
-    "identity",
-    "clipboardWrite",
     "storage"
   ],
-  "options_page": "options.html",
-  "host_permissions": [
-    "<all_urls>"
+  "optional_host_permissions": [
+    "http://*/*",
+    "https://*/*"
   ],
   "background": {
     "service_worker": "./dist/background.js"
@@ -20,9 +18,11 @@
       "js": ["./dist/accounts.js", "./dist/auto.js", "./dist/transactions.js"]
     }
   ],
+  "action": {
+    "default_popup": "options.html"
+  },
   "icons": {
     "128": "icon.png"
   },
-  "devtools_page": "devtools.html",
   "manifest_version": 3
 }

@@ -64,7 +64,7 @@ export async function doOauth(params: AuthInputParams): Promise<void> {
         }, () => {
         });
 
-        // TODO: Implement refresh flow
+        // TODO: [Base Project] Implement refresh flow
         return chrome.storage.local.set({
             "ffiii_bearer_token": response.access_token,
         }, () => {
@@ -75,6 +75,12 @@ export async function doOauth(params: AuthInputParams): Promise<void> {
 export function getBearerToken(): Promise<string> {
     return chrome.storage.local.get(["ffiii_bearer_token"]).then(r => {
         return r.ffiii_bearer_token;
+    });
+}
+
+export function getApiBaseUrl(): Promise<string> {
+    return chrome.storage.local.get(["ffiii_api_base_url"]).then(r => {
+        return r.ffiii_api_base_url;
     });
 }
 

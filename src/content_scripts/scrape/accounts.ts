@@ -2,6 +2,12 @@ import {priceFromString} from "../../common/prices";
 import {OpeningBalance} from "../../background/firefly_export";
 import {parseDate} from "../../common/dates";
 
+export function getButtonDestination(): Element {
+    // TODO: Find a DOM element on the page where the manual "export to firefly"
+    //  button should go.
+    return document.body;
+}
+
 export function getAccountElements(): Element[] {
     return [document.querySelector("button#transactionHistory")!];
 }

@@ -1,4 +1,5 @@
 import {AutoRunState} from "../background/auto_state";
+import {runOnContentChange} from "../common/autorun";
 
 function buildCol() {
     const col = document.createElement("td");
@@ -7,6 +8,8 @@ function buildCol() {
     col.style.height = "100%";
     return col;
 }
+
+let statusBarId = 'firefly-extension-autorun-status-bar';
 
 function buildStatusBar(acctCol: HTMLTableCellElement, txCol: HTMLTableCellElement, doneCol: HTMLTableCellElement) {
     const container = document.createElement("div");
@@ -23,46 +26,56 @@ function buildStatusBar(acctCol: HTMLTableCellElement, txCol: HTMLTableCellEleme
     table.append(acctCol, txCol, doneCol)
 
     container.append(table);
+    container.id = statusBarId;
     return container;
 }
 
-window.addEventListener("load", function (event) {
-    const [acctCol, txCol, doneCol] = [buildCol(), buildCol(), buildCol()];
-    const statusBar = buildStatusBar(acctCol, txCol, doneCol);
+runOnContentChange(
+    '',
+    () => {
+        if (document.getElementById(statusBarId)) {
+            return;
+        }
+        const [acctCol, txCol, doneCol] = [buildCol(), buildCol(), buildCol()];
+        const statusBar = buildStatusBar(acctCol, txCol, doneCol);
 
-    document.body.append(statusBar);
+        document.body.append(statusBar);
 
-    const updateProgressBar = () => {
-        chrome.runtime.sendMessage({
-            action: "get_auto_run_state",
-        }).then(
-            state => {
-                if (state === AutoRunState.Unstarted) {
-                    return;
+        const updateProgressBar = () => {
+            chrome.runtime.sendMessage({
+                action: "get_auto_run_state",
+            }).then(
+                state => {
+                    if (state === AutoRunState.Unstarted) {
+                        return;
+                    }
+                    acctCol.style.background = "white";
+                    txCol.style.background = "white";
+                    doneCol.style.background = "white";
+                    if (state === AutoRunState.Accounts) {
+                        acctCol.style.background = "blue";
+                    } else if (state === AutoRunState.Transactions) {
+                        acctCol.style.background = "blue";
+                        txCol.style.background = "blue";
+                    } else if (state === AutoRunState.Done) {
+                        acctCol.style.background = "blue";
+                        txCol.style.background = "blue";
+                        doneCol.style.background = "blue";
+                    }
                 }
-                acctCol.style.background = "white";
-                txCol.style.background = "white";
-                doneCol.style.background = "white";
-                if (state === AutoRunState.Accounts) {
-                    acctCol.style.background = "blue";
-                } else if (state === AutoRunState.Transactions) {
-                    acctCol.style.background = "blue";
-                    txCol.style.background = "blue";
-                } else if (state === AutoRunState.Done) {
-                    acctCol.style.background = "blue";
-                    txCol.style.background = "blue";
-                    doneCol.style.background = "blue";
-                }
-            }
-        )
-    }
-    updateProgressBar();
-
-    chrome.runtime.onMessage.addListener((message) => {
-        if (message.action !== "update_auto_run_progress") {
-            return false;
+            )
         }
         updateProgressBar();
-        return true;
-    })
+
+        chrome.runtime.onMessage.addListener((message) => {
+            if (message.action !== "update_auto_run_progress") {
+                return false;
+            }
+            updateProgressBar();
+            return true;
+        })
+    }
+)
+window.addEventListener("load", function (event) {
+
 });
