@@ -3,7 +3,8 @@
   "version": "1.0",
   "description": "Scrapes account and transaction data from Rogers Bank (MasterCard) into Firefly III",
   "permissions": [
-    "storage"
+    "storage",
+    "tabs"
   ],
   "optional_host_permissions": [
     "http://*/*",
