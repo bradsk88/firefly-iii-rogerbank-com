@@ -1,30 +1,31 @@
 import {TransactionStore, TransactionTypeProperty} from "firefly-iii-typescript-sdk-fetch";
-import {PageAccount} from "../../common/accounts";
 import {AccountRead} from "firefly-iii-typescript-sdk-fetch/dist/models/AccountRead";
 import {parseDate} from "../../common/dates";
+
+export function getButtonDestination(): Element {
+    return document.querySelector("div.row.filter-cols")!;
+}
 
 /**
  * @param accounts The first page of account in your Firefly III instance
  */
 export async function getCurrentPageAccount(
     accounts: AccountRead[],
-): Promise<PageAccount> {
+): Promise<AccountRead> {
     const backButton = document.getElementById('BackButton');
-    const accountNum = backButton!.querySelector('span.card-last')!.textContent!.split('...')[1];
-    const account = accounts.find(acct => acct.attributes.accountNumber === accountNum)!;
-    return {
-        id: account.id,
-        name: account.attributes.name,
-        accountNumber: account.attributes.accountNumber || undefined,
-    };
+    const accountNumber = backButton!.querySelector('span.card-last')!.textContent!.split('...')[1];
+    return accounts.find(
+        acct => acct.attributes.accountNumber === accountNumber,
+    )!;
 }
 
 /**
  * @param pageAccountId The Firefly III account ID for the current page
  */
 export function scrapeTransactionsFromPage(
-    pageAccountId: string,
+    pageAccount: AccountRead,
 ): TransactionStore[] {
+    const pageAccountId = pageAccount.id;
     const container = document.querySelectorAll('div.list-container div.list-item').values();
     return Array.from(container).map(item => {
         const itemName = item.querySelector("div.item-name");
