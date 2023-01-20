@@ -1,6 +1,7 @@
 {
   "name": "RogersBank -> Firefly III",
-  "version": "1.0",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAtSalXnqYrmCSOJd6TknUQ5OIb+rHDe88rL+1Irqca3qb/sM+9QfIkJoX/RPHyn4nkXHAo3T8SoHuO5XhjAkhzVBH4sD54qmbIjJtj7VFPonksBITul4gQ2Wo4uNGq6XWr//LEBxn0UIAWMfCbrvdC8R6FkJB8G5GUHmDuX51sADHeoLvShU9hWH9sjZD8XHSp2C7GVPzsPyIyxJLN87PF/oepARi1fHMPC8gxbspzLyMF64gduVj0XRHmGXraxiIo2BoyGh0oILN++ClspcW5qwV4WWZ9Gy17mUZ2YXKPBs9CPLmj2BaKIHVqpnlg2DkT2yraAeZ5HqDHrsZv8bikwIDAQAB",
+  "version": "1.2",
   "description": "Scrapes account and transaction data from Rogers Bank (MasterCard) into Firefly III",
   "permissions": [
     "storage",
