@@ -64,7 +64,16 @@ function addButton() {
     button.id = buttonId;
     button.textContent = "Export Accounts"
     button.addEventListener("click", () => scrapeAccountsFromPage(false), false);
-    getButtonDestination().append(button);
+
+    button.classList.add('btn-default', 'ui-dropdown-btn', 'dropdown-toggle', 'btn', 'btn-default');
+
+    const container = document.createElement("div");
+    container.classList.add('quick-link-options')
+    container.append(button)
+    container.style.border = 'none';
+    container.style.textAlign = 'end';
+
+    getButtonDestination().append(container);
 }
 
 function enableAutoRun() {

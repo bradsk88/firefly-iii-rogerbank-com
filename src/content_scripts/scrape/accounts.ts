@@ -3,13 +3,11 @@ import {OpeningBalance} from "../../background/firefly_export";
 import {parseDate} from "../../common/dates";
 
 export function getButtonDestination(): Element {
-    // TODO: Find a DOM element on the page where the manual "export to firefly"
-    //  button should go.
-    return document.body;
+    return document.querySelector("div.banner-title")!;
 }
 
 export function getAccountElements(): Element[] {
-    return [document.querySelector("button#transactionHistory")!];
+    return [document.querySelector("div.banner-title > div.jsx-parser")!];
 }
 
 export function getAccountNumber(

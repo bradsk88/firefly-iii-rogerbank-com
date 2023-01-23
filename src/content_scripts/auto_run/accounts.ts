@@ -23,6 +23,7 @@ function findNextAccountElement(accountName: string): Element | undefined {
 function navigateToAccount(
     accountElement: Element,
 ): void {
+    accountElement = document.querySelector("button#transactionHistory")!;
     (accountElement as HTMLElement)?.click()
 }
 

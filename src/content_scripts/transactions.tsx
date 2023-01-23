@@ -144,11 +144,12 @@ runOnURLMatch(txPage, () => pageAlreadyScraped = false);
 
 // If your manifest.json allows your content script to run on multiple pages,
 // you can call this function more than once, or set the urlPath to "".
-runOnURLMatch(
+runOnContentChange(
     'app/transactions',
-    () => !!document.getElementById(buttonId),
     () => {
-        pageAlreadyScraped = false;
+        if (!!document.getElementById(buttonId)) {
+            return;
+        }
         addButton();
     },
     getButtonDestination,
