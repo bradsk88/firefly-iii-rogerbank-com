@@ -1,4 +1,6 @@
+import {AutoRunState} from "../../background/auto_state";
 import {getAccountElements, getAccountName} from "../scrape/accounts";
+import {isSingleAccountBank} from "../../extensionid";
 
 function findNextAccountElement(accountName: string): Element | undefined {
     // You probably shouldn't need to modify the function.
@@ -33,5 +35,12 @@ export function openAccountForAutoRun() {
                 navigateToAccount(accountElement);
                 return;
             }
+            if (isSingleAccountBank) {
+                return;
+            }
+            chrome.runtime.sendMessage({
+                action: "complete_auto_run_state",
+                state: AutoRunState.Transactions,
+            });
         });
 }

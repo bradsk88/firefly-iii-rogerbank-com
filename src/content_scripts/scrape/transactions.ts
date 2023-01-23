@@ -1,6 +1,6 @@
-import {TransactionStore, TransactionTypeProperty} from "firefly-iii-typescript-sdk-fetch";
 import {AccountRead} from "firefly-iii-typescript-sdk-fetch/dist/models/AccountRead";
 import {parseDate} from "../../common/dates";
+import {priceFromString} from "../../common/prices";
 
 export function getButtonDestination(): Element {
     return document.querySelector("div.row.filter-cols")!;
@@ -19,44 +19,32 @@ export async function getCurrentPageAccount(
     )!;
 }
 
-/**
- * @param pageAccountId The Firefly III account ID for the current page
- */
-export function scrapeTransactionsFromPage(
-    pageAccount: AccountRead,
-): TransactionStore[] {
-    const pageAccountId = pageAccount.id;
-    const container = document.querySelectorAll('div.list-container div.list-item').values();
-    return Array.from(container).map(item => {
-        const itemName = item.querySelector("div.item-name");
-        const itemDesc = item.querySelector('span.item-bottom-left > div');
-        const itemAmt = item.querySelector('div.text-right > div.item-amount');
-        const itemDate = item.parentElement!.parentElement!.parentElement!.querySelector('div.list-floating-header');
-        const amountStr = itemAmt!.textContent!.trim();
-        const isDeposit = amountStr.startsWith('-');
-        const tType = isDeposit ? TransactionTypeProperty.Deposit : TransactionTypeProperty.Withdrawal;
-        const tDate = parseDate(itemDate!.textContent!);
-        const tAmt = (isDeposit ? amountStr.replace("-", "") : amountStr).replace('$', '').replace(',', '');
-        const tDesc = `${itemName!.textContent} - ${itemDesc!.textContent!}`;
+export function getRowElements(): Element[] {
+    return Array.from(document.querySelectorAll(
+        'div.list-container div.list-item'
+    ).values());
+}
 
-        const sourceId = tType === TransactionTypeProperty.Withdrawal ? pageAccountId : undefined;
-        const destId = tType === TransactionTypeProperty.Deposit ? pageAccountId : undefined;
+export function getRowDate(el: Element): Date {
+    const itemDate = el.parentElement!.parentElement!.parentElement!.querySelector('div.list-floating-header');
+    return parseDate(itemDate!.textContent!);
+}
 
-        return {
-            errorIfDuplicateHash: true,
-            transactions: [{
-                type: tType,
-                date: tDate,
-                amount: tAmt,
-                description: tDesc,
-                sourceId: sourceId,
-                destinationId: destId,
-            }],
-        };
-    }).map(tr => {
-        tr.transactions = tr.transactions.filter(
-            t => !t.description.includes("Pending")
-        );
-        return tr;
-    });
+function isRowLoading(r: Element): boolean {
+    return false;
+}
+
+export function getRowAmount(r: Element): number {
+    if (isRowLoading(r)) {
+        throw new Error("Page is not ready for scraping")
+    }
+    const itemAmt = r.querySelector('div.text-right > div.item-amount');
+    const amountStr = itemAmt!.textContent!.trim();
+    return priceFromString(amountStr);
+}
+
+export function getRowDesc(r: Element): string {
+    const itemName = r.querySelector("div.item-name");
+    const itemDesc = r.querySelector('span.item-bottom-left > div');
+    return `${itemName!.textContent} - ${itemDesc!.textContent!}`;
 }

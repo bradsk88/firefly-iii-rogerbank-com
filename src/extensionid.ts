@@ -4,4 +4,5 @@ export const extensionPrimaryColorHex = 'FFFFFF';
 export const extensionSecondaryColorHex = 'da291c';
 export const extensionId = 'ddkokcnfmniphncdncdjndfgllfciinp';
 export const extensionBankName = `Rogers Bank (MasterCard)`;
+export const isSingleAccountBank = true;
 export const hubExtensionId = 'kcghjdbnjdaabfigmmjgmgiaehjidpoh';

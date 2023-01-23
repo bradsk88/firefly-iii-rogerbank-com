@@ -78,23 +78,33 @@ function enableAutoRun() {
                 .then(() => chrome.runtime.sendMessage({
                     action: "complete_auto_run_state",
                     state: AutoRunState.Accounts,
-                }));
+                }))
+            // TODO: Is this next line necessary?
+                // .then(() => openAccountForAutoRun());
         } else if (state === AutoRunState.Transactions) {
             openAccountForAutoRun();
         }
     });
 }
 
-runOnURLMatch(
-    '',
-    () => !!document.getElementById(buttonId),
+const accountsUrl = 'app/accountSummary';
+
+runOnURLMatch(accountsUrl, () => pageAlreadyScraped = false);
+
+runOnContentChange(
+    accountsUrl,
     () => {
-        pageAlreadyScraped = false;
+        if (!!document.getElementById(buttonId)) {
+            return;
+        }
         addButton();
     },
-);
+    getButtonDestination,
+)
+
 
 runOnContentChange(
     'app/accountSummary',
     enableAutoRun,
+    () => getAccountElements()[0]
 )

@@ -1,9 +1,17 @@
-import {TransactionStore} from "firefly-iii-typescript-sdk-fetch";
+import {TransactionStore, TransactionTypeProperty} from "firefly-iii-typescript-sdk-fetch";
 import {AutoRunState} from "../background/auto_state";
-import {getButtonDestination, getCurrentPageAccount, scrapeTransactionsFromPage} from "./scrape/transactions";
+import {
+    getButtonDestination,
+    getCurrentPageAccount,
+    getRowAmount,
+    getRowDate, getRowDesc,
+    getRowElements
+} from "./scrape/transactions";
 import {PageAccount} from "../common/accounts";
 import {runOnURLMatch} from "../common/buttons";
 import {runOnContentChange} from "../common/autorun";
+import {AccountRead} from "firefly-iii-typescript-sdk-fetch/dist/models/AccountRead";
+import {isSingleAccountBank} from "../extensionid";
 
 interface TransactionScrape {
     pageAccount: PageAccount;
@@ -11,6 +19,39 @@ interface TransactionScrape {
 }
 
 let pageAlreadyScraped = false;
+
+/**
+ * @param pageAccount The Firefly III account for the current page
+ */
+export function scrapeTransactionsFromPage(
+    pageAccount: AccountRead,
+): TransactionStore[] {
+    const rows = getRowElements();
+    return rows.map(r => {
+        let tType = TransactionTypeProperty.Withdrawal;
+        let srcId: string | undefined = pageAccount.id;
+        let destId: string | undefined = undefined;
+
+        const amount = getRowAmount(r);
+        if (amount < 0) {
+            tType = TransactionTypeProperty.Deposit;
+            srcId = undefined;
+            destId = pageAccount.id;
+        }
+
+        return {
+            errorIfDuplicateHash: true,
+            transactions: [{
+                type: tType,
+                date: getRowDate(r),
+                amount: `${Math.abs(amount)}`,
+                description: getRowDesc(r),
+                destinationId: destId,
+                sourceId: srcId
+            }],
+        };
+    })
+}
 
 async function doScrape(isAutoRun: boolean): Promise<TransactionScrape> {
     if (isAutoRun && pageAlreadyScraped) {
@@ -33,6 +74,12 @@ async function doScrape(isAutoRun: boolean): Promise<TransactionScrape> {
         },
         () => {
         });
+    if (isSingleAccountBank) {
+        await chrome.runtime.sendMessage({
+            action: "complete_auto_run_state",
+            state: AutoRunState.Transactions,
+        });
+    }
     return {
         pageAccount: {
             accountNumber: acct.attributes.accountNumber!,
@@ -47,6 +94,7 @@ const buttonId = 'firefly-iii-export-transactions-button';
 
 function addButton() {
     const button = document.createElement("button");
+    button.id = buttonId;
     button.textContent = "Export Transactions"
     button.addEventListener("click", async () => doScrape(false), false);
 
@@ -70,16 +118,29 @@ function enableAutoRun() {
     }).then(state => {
         if (state === AutoRunState.Transactions) {
             doScrape(true)
-                .then((id: TransactionScrape) => chrome.runtime.sendMessage({
-                    action: "complete_auto_run_state",
-                    state: AutoRunState.Transactions,
-                }))
+                .then((id: TransactionScrape) => {
+                    if (isSingleAccountBank) {
+                        return chrome.runtime.sendMessage({
+                            action: "complete_auto_run_state",
+                            state: AutoRunState.Transactions,
+                        })
+                    } else {
+                        return chrome.runtime.sendMessage({
+                            action: "increment_auto_run_tx_account",
+                            lastAccountNameCompleted: id.pageAccount.name,
+                        })
+                    }
+                })
                 .catch(err => {
                     console.log('Will try again on next draw', err)
                 });
         }
     });
 }
+
+const txPage = 'app/transactions';
+
+runOnURLMatch(txPage, () => pageAlreadyScraped = false);
 
 // If your manifest.json allows your content script to run on multiple pages,
 // you can call this function more than once, or set the urlPath to "".
@@ -90,9 +151,7 @@ runOnURLMatch(
         pageAlreadyScraped = false;
         addButton();
     },
+    getButtonDestination,
 )
 
-runOnContentChange(
-    'app/transactions',
-    enableAutoRun,
-)
+runOnContentChange(txPage, enableAutoRun);
