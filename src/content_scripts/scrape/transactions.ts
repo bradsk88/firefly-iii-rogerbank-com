@@ -48,3 +48,10 @@ export function getRowDesc(r: Element): string {
     const itemDesc = r.querySelector('span.item-bottom-left > div');
     return `${itemName!.textContent} - ${itemDesc!.textContent!}`;
 }
+
+export function findBackToAccountsPageButton(): HTMLElement {
+    // TODO: Once a single account's transactions have been scraped, we need to
+    //  go back to the main accounts page to finish the auto run. Find an
+    //  element on the page that we can click on to go back. Example below.
+    return document.querySelector('button.btn-icon-back')!;
+}

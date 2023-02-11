@@ -1,5 +1,10 @@
 # Rogers Bank (MasterCard) Firefly III Scraper (Chrome Extension)
 
+## Development
+Copy this template to a repo of your own and then follow the [Development Guide](
+./DEV_GUIDE.md
+)
+
 ## Status
 This project is a work in progress
 

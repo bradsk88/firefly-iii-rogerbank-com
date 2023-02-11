@@ -12,6 +12,7 @@ import {runOnURLMatch} from "../common/buttons";
 import {runOnContentChange} from "../common/autorun";
 import {AccountRead} from "firefly-iii-typescript-sdk-fetch/dist/models/AccountRead";
 import {isSingleAccountBank} from "../extensionid";
+import {backToAccountsPage} from "./auto_run/transactions";
 
 interface TransactionScrape {
     pageAccount: PageAccount;
@@ -130,7 +131,7 @@ function enableAutoRun() {
                         return chrome.runtime.sendMessage({
                             action: "increment_auto_run_tx_account",
                             lastAccountNameCompleted: id.pageAccount.name,
-                        })
+                        }).then(() => backToAccountsPage())
                     }
                 })
                 .catch(err => {
@@ -150,7 +151,7 @@ runOnContentChange(
     'app/transactions',
     () => {
         if (!!document.getElementById(buttonId)) {
-            return;
+            document.getElementById(buttonId)!.remove();
         }
         addButton();
     },
