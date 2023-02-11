@@ -51,9 +51,7 @@ export function scrapeTransactionsFromPage(
                 sourceId: srcId
             }],
         };
-    }).filter(
-        r => !r.transactions[0].description.toLowerCase().includes("pending")
-    )
+    });
 }
 
 async function doScrape(isAutoRun: boolean): Promise<TransactionScrape> {
@@ -65,11 +63,14 @@ async function doScrape(isAutoRun: boolean): Promise<TransactionScrape> {
         action: "list_accounts",
     });
     const acct = await getCurrentPageAccount(accounts);
-    const txs = scrapeTransactionsFromPage(acct);
+    const stxs = scrapeTransactionsFromPage(acct);
     pageAlreadyScraped = true;
-    if (txs.length === 0) {
+    if (stxs.length === 0) {
         throw new Error("Page is not ready for scraping");
     }
+    const txs = stxs.filter(
+        r => !r.transactions[0].description.toLowerCase().includes("pending")
+    )
     await chrome.runtime.sendMessage({
             action: "store_transactions",
             is_auto_run: isAutoRun,
@@ -151,7 +152,7 @@ runOnContentChange(
     'app/transactions',
     () => {
         if (!!document.getElementById(buttonId)) {
-            document.getElementById(buttonId)!.remove();
+            return;
         }
         addButton();
     },
