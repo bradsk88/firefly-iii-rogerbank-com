@@ -50,7 +50,9 @@ export function scrapeTransactionsFromPage(
                 sourceId: srcId
             }],
         };
-    })
+    }).filter(
+        r => !r.transactions[0].description.toLowerCase().includes("pending")
+    )
 }
 
 async function doScrape(isAutoRun: boolean): Promise<TransactionScrape> {
