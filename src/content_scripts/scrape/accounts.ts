@@ -6,8 +6,16 @@ export function getButtonDestination(): Element {
     return document.querySelector("div.banner-title")!;
 }
 
+export function isPageReadyForScraping(): boolean {
+    return true;
+}
+
 export function getAccountElements(): Element[] {
     return [document.querySelector("div.banner-title > div.jsx-parser")!];
+}
+
+export function shouldSkipScrape(accountElement: Element): boolean {
+    return false;
 }
 
 export function getAccountNumber(

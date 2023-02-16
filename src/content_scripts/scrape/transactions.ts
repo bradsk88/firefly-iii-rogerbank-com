@@ -19,6 +19,10 @@ export async function getCurrentPageAccount(
     )!;
 }
 
+export function isPageReadyForScraping(): boolean {
+    return true;
+}
+
 export function getRowElements(): Element[] {
     return Array.from(document.querySelectorAll(
         'div.list-container div.list-item'
