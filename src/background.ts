@@ -24,6 +24,7 @@ import {
     extensionSecondaryColorHex,
     hubExtensionId
 } from "./extensionid";
+import MessageSender = chrome.runtime.MessageSender;
 
 const backgroundLog = (string: string): void => {
     chrome.runtime.sendMessage({
@@ -44,21 +45,26 @@ function registerSelfWithHubExtension() {
     })
 }
 
-chrome.runtime.onStartup.addListener(function () {
-    setTimeout(registerSelfWithHubExtension, 1000);
-    setTimeout(registerSelfWithHubExtension, 5000);
-})
+chrome.runtime.onInstalled.addListener(registerSelfWithHubExtension);
 
-setTimeout(registerSelfWithHubExtension, 1000);
-setTimeout(registerSelfWithHubExtension, 5000);
-
-chrome.runtime.onMessageExternal.addListener((msg: any, _: any, sendResponse: Function) => {
+chrome.runtime.onMessageExternal.addListener((msg: any, sender: MessageSender, sendResponse: Function) => {
+    if (sender.id != hubExtensionId) {
+        console.error("Rejecting message from unexpected extension: ", sender.id)
+        return;
+    }
     console.log('message', msg);
     if (msg.action === "login") {
         return chrome.storage.local.set({
             "ffiii_bearer_token": msg.token,
             "ffiii_api_base_url": msg.api_base_url,
-        }, () => {
+        }).then(() => {
+            chrome.permissions.getAll(async perms => {
+                if ((perms.origins?.filter(o => !o.includes(bankDomain)) || []).length > 0) {
+                    return;
+                } else {
+                    chrome.runtime.openOptionsPage();
+                }
+            })
         });
     }
     if (msg.action === "request_auto_run") {

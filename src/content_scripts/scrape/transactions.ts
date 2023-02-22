@@ -38,7 +38,7 @@ function isRowLoading(r: Element): boolean {
     return false;
 }
 
-export function getRowAmount(r: Element): number {
+export function getRowAmount(r: Element, pageAccount: AccountRead): number {
     if (isRowLoading(r)) {
         throw new Error("Page is not ready for scraping")
     }
