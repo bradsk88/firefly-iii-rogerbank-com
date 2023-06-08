@@ -11,10 +11,11 @@ export interface OpeningBalance {
 
 export async function doListAccounts(
     token: string,
+    baseURL: string,
 ): Promise<AccountRead[]> {
     let api = new AccountsApi(
         new Configuration({
-            basePath: "http://192.168.0.124:4575",
+            basePath: baseURL,
             accessToken: `Bearer ${token}`,
             headers: {
                 "Content-Type": "application/json",
@@ -24,16 +25,28 @@ export async function doListAccounts(
         }),
     );
     return api.listAccount({
-        // TODO: [Base Project] Handle lots of accounts (multiple pages)
+        // BASE: Handle lots of accounts (multiple pages)
     }).then(
-        (arr: AccountArray) => arr.data,
+        async (arr: AccountArray) => {
+            let results = arr.data;
+            if ((arr.meta.pagination?.total || 0) > results.length) {
+                // BASE: Handle lots of accounts (multiple pages)
+                const results2 = await api.listAccount({page: 2})
+                results = results.concat(results2.data);
+            }
+            return results;
+        },
     );
 }
 
-export function doStoreOpeningBalance(token: string, data: OpeningBalance) {
+export function doStoreOpeningBalance(
+    token: string,
+    baseURL: string,
+    data: OpeningBalance
+) {
     let api = new AccountsApi(
         new Configuration({
-            basePath: "http://192.168.0.124:4575",
+            basePath: baseURL,
             accessToken: `Bearer ${token}`,
             headers: {
                 "Content-Type": "application/json",
@@ -52,10 +65,14 @@ export function doStoreOpeningBalance(token: string, data: OpeningBalance) {
     })
 }
 
-export function doStoreTransactions(token: string, data: TransactionStore[]) {
+export function doStoreTransactions(
+    token: string,
+    baseURL: string,
+    data: TransactionStore[],
+) {
     let api = new TransactionsApi(
         new Configuration({
-            basePath: "http://192.168.0.124:4575",
+            basePath: baseURL,
             accessToken: `Bearer ${token}`,
             headers: {
                 "Content-Type": "application/json",
@@ -70,10 +87,14 @@ export function doStoreTransactions(token: string, data: TransactionStore[]) {
     }));
 }
 
-export function doStoreAccounts(token: string, data: AccountStore[]) {
+export function doStoreAccounts(
+    token: string,
+    baseURL: string,
+    data: AccountStore[],
+) {
     let api = new AccountsApi(
         new Configuration({
-            basePath: "http://192.168.0.124:4575",
+            basePath: baseURL,
             accessToken: `Bearer ${token}`,
             headers: {
                 "Content-Type": "application/json",
