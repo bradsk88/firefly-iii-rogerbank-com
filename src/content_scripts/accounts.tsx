@@ -16,6 +16,7 @@ import {CreditCardType} from "firefly-iii-typescript-sdk-fetch";
 import {runOnURLMatch} from "../common/buttons";
 import {runOnContentChange} from "../common/autorun";
 import {debugLog} from "./auto_run/debug";
+import {extensionBankName} from "../extensionid";
 
 let pageAlreadyScraped = false;
 export let navigating = false;
@@ -42,7 +43,7 @@ async function scrapeAccountsFromPage(isAutoRun: boolean): Promise<AccountStore[
             openingBalanceBalance = `-${openingBalance.balance}`;
         }
         const as: AccountStore = {
-            name: accountName,
+            name: `${extensionBankName} - ${accountName}`,
             type: ShortAccountTypeProperty.Asset,
             accountRole: AccountRoleProperty.CcAsset,
             accountNumber: accountNumber,

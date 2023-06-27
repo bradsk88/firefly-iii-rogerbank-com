@@ -43,6 +43,7 @@ export function scrapeTransactionsFromPage(
 
         return {
             errorIfDuplicateHash: true,
+            applyRules: true,
             transactions: [{
                 type: tType,
                 date: getRowDate(r),
