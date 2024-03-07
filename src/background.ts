@@ -1,10 +1,12 @@
-import {TransactionStore} from "firefly-iii-typescript-sdk-fetch";
+import {TransactionRead, TransactionStore} from "firefly-iii-typescript-sdk-fetch";
 import {AccountStore} from "firefly-iii-typescript-sdk-fetch/dist/models";
 import {AccountRead} from "firefly-iii-typescript-sdk-fetch/dist/models/AccountRead";
 import {AutoRunState} from "./background/auto_state";
 import {doOauth, getApiBaseUrl, getBearerToken} from "./background/oauth";
 import {
+    doDeleteTransaction,
     doListAccounts,
+    doListTxs,
     doStoreAccounts,
     doStoreOpeningBalance,
     doStoreTransactions,
@@ -32,6 +34,7 @@ const backgroundLog = (string: string): void => {
         value: string,
     }, () => {
     });
+    console.log(string);
 }
 
 function registerSelfWithHubExtension() {
@@ -102,6 +105,12 @@ async function storeTransactions(data: TransactionStore[]) {
     return doStoreTransactions(bearer, baseURL, data);
 }
 
+async function deleteTransaction(txid: string) {
+    const bearer = await getBearerToken();
+    const baseURL = await getApiBaseUrl();
+    return doDeleteTransaction(bearer, baseURL, txid);
+}
+
 async function storeOpeningBalance(data: OpeningBalance) {
     const bearer = await getBearerToken();
     const baseURL = await getApiBaseUrl();
@@ -112,6 +121,12 @@ export async function listAccounts(): Promise<AccountRead[]> {
     const bearer = await getBearerToken();
     const baseURL = await getApiBaseUrl();
     return doListAccounts(bearer, baseURL);
+}
+
+export async function listTxs(accountId: string, endDate?: Date, pageSize?: number): Promise<TransactionRead[]> {
+    const bearer = await getBearerToken();
+    const baseURL = await getApiBaseUrl();
+    return doListTxs(accountId, bearer, baseURL, endDate, pageSize);
 }
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -143,6 +158,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 backgroundLog(`[error] ${error}`)
             });
         }).then(sendResponse)
+    } else if (message.action === "delete_transaction") {
+        deleteTransaction(message.value).catch(
+            e => console.log('failed to deleteTransaction', `ID: ${message.value}`, e)
+        );
+    } else if (message.action === "list_transactions") {
+        const value: {accountId: string, pageSize: number, endDate: Date} = message.value;
+        listTxs(value.accountId, new Date(value.endDate), value.pageSize).then(sendResponse)
     } else if (message.action === "store_opening") {
         patchDatesOB(message.value).then(
             obStore => storeOpeningBalance(obStore),

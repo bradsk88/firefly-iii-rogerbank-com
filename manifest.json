@@ -5,7 +5,8 @@
   "description": "Scrapes account and transaction data from Rogers Bank (MasterCard) into Firefly III",
   "permissions": [
     "storage",
-    "tabs"
+    "tabs",
+    "contextMenus"
   ],
   "externally_connectable": {
     "ids": [
